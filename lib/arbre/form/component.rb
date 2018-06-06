@@ -1,7 +1,7 @@
 require 'arbre/form/base'
 require 'arbre/form/component/path'
 require 'arbre/form/component/group'
-require 'arbre/form/component/template'
+require 'arbre/form/component/validation'
 
 module Arbre::Form
   class Component < Base
@@ -10,8 +10,8 @@ module Arbre::Form
     attr_reader :record, :index, :path
 
     def build(
+      record,
       action = '/',
-      record:,
       errors: record.respond_to?(:errors) ? record.errors : {},
       successes: record.respond_to?(:successes) ? record.successes : {},
 
@@ -44,10 +44,13 @@ module Arbre::Form
       label: nil,
       wrapper: {},
       field_wrapper: @wrappers.field,
+
       error_wrapper: @wrappers.error,
-      success_wrapper: @wrappers.success,
       error_class: @classes.error,
+      errors_class: @classes.errors,
+      success_wrapper: @wrappers.success,
       success_class: @classes.success,
+      successes_class: @classes.successes,
 
       **field_attributes,
       &block
@@ -56,34 +59,38 @@ module Arbre::Form
       field_successes = @path.successes.fetch(attribute, [])
 
       config = components[as]
-      component = config[:component]
-      type = config[:type]
-      field_attributes[:type] ||= type
+      field_attributes[:type] ||= config.type
 
-      formatter = config.fetch(:formatter, proc { |val| val })
+      formatter = config.formatter
       value ||= @record.respond_to?(attribute) ? @record.public_send(attribute) : nil
       value = formatter.call(value)
 
       wrapped = proc do
+        if label
+          node = label(label)
+          node.set_attribute(:for, self.id)
+        end
+
         field = insert_tag(
-          component,
+          config.tag,
           content,
           id: @path.id(attribute),
           name: @path.name(attribute),
           value: value,
-          label: label,
           **field_attributes,
           &block
         )
 
         unless field_errors.empty?
           field.add_class error_class
-          field.errors = insert_tag(error_wrapper, field_errors, validation_type: :error)
+          errors = insert_tag(error_wrapper, field_errors, class_name: errors_class)
+          field.define_singleton_method(:errors) { errors }
         end
 
         unless field_successes.empty?
           field.add_class success_class
-          field.successes = insert_tag(success_wrapper, field_successes, validation_type: :success)
+          successes = insert_tag(success_wrapper, field_successes, class_name: successes_class)
+          field.define_singleton_method(:successes) { successes }
         end
 
         field
@@ -103,8 +110,8 @@ module Arbre::Form
       association,
       association_wrapper: @wrappers.association,
       record_wrapper: @wrappers.record,
-      record_attributes: {},
-      **association_attributes,
+      association_attributes: {},
+      **record_attributes,
       &block
     )
       association_attributes[:id] ||= @path.id(association)

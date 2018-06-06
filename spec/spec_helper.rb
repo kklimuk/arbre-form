@@ -2,13 +2,15 @@ require 'bundler/setup'
 require 'arbre/form'
 
 RSpec.configure do |config|
-  # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = '.rspec_status'
-
-  # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
 
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+end
+
+def arbre_context(content, *args, &body)
+  klass = described_class
+  Arbre::Context.new { insert_tag(klass, content, *args, &body) }.to_s
 end

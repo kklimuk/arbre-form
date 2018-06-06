@@ -8,4 +8,3 @@ end
 
 require 'arbre/form/config'
 require 'arbre/form/component'
-require 'arbre/form/fields'

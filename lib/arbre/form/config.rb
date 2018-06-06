@@ -7,6 +7,16 @@ module Arbre::Form
   class Config
     attr_accessor :wrappers, :classes, :components
 
+    class Component
+      attr_accessor :tag, :type, :formatter
+      
+      def initialize(tag:, type: nil, formatter: proc { |val| val })
+        @tag = tag
+        @type = type
+        @formatter = formatter
+      end
+    end
+
     def initialize(&block)
       self.wrappers = OpenStruct.new(
         field: Arbre::HTML::Div,
@@ -19,114 +29,116 @@ module Arbre::Form
 
       self.classes = OpenStruct.new(
         error: 'is-invalid',
-        success: 'is-valid'
+        errors: 'invalid-feedback',
+        success: 'is-valid',
+        successes: 'valid-feedback'
       )
 
-      self.components = {
-        input: {
-          component: Arbre::HTML::Input
-        },
+      self.components = OpenStruct.new(
+        input: Component.new(
+          tag: Arbre::HTML::Input
+        ),
 
-        checkbox: {
-          component: Arbre::HTML::Input,
-          type: 'checkbox'
-        },
+        checkbox: Component.new(
+          tag: Arbre::HTML::Input,
+          type: 'checkbox',
+          formatter: proc { |value| value ? '1' : '0' },
+        ),
 
-        date: {
-          component: Arbre::HTML::Input,
+        date: Component.new(tag: Arbre::HTML::Input,
           type: 'date',
           formatter: proc { |date| date.strftime('%Y-%m-%d') if date },
-        },
+        ),
 
-        datetime: {
-          component: Arbre::HTML::Input,
+        datetime: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'datetime-local',
           formatter: proc { |time| time.strftime('%Y-%m-%dT%H:%M') if time }
-        },
+        ),
 
-        email: {
-          component: Arbre::HTML::Input,
+        email: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'email'
-        },
+        ),
 
-        file: {
-          component: Arbre::HTML::Input,
+        file: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'file'
-        },
+        ),
 
-        hidden: {
-          component: Arbre::HTML::Input,
+        hidden: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'hidden'
-        },
+        ),
 
-        image: {
-          component: Arbre::HTML::Input,
+        image: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'image'
-        },
+        ),
 
-        month: {
-          component: Arbre::HTML::Input,
+        month: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'month'
-        },
+        ),
 
-        number: {
-          component: Arbre::HTML::Input,
+        number: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'number'
-        },
+        ),
 
-        password: {
-          component: Arbre::HTML::Input,
+        password: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'password'
-        },
+        ),
 
-        radio: {
-          component: Arbre::HTML::Input,
+        radio: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'radio'
-        },
+        ),
 
-        range: {
-          component: Arbre::HTML::Input,
+        range: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'range'
-        },
+        ),
 
-        search: {
-          component: Arbre::HTML::Input,
+        search: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'search'
-        },
+        ),
 
-        tel: {
-          component: Arbre::HTML::Input,
+        tel: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'tel'
-        },
+        ),
 
-        text: {
-          component: Arbre::HTML::Input,
+        text: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'text'
-        },
+        ),
 
-        time: {
-          component: Arbre::HTML::Input,
+        time: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'time'
-        },
+        ),
 
-        url: {
-          component: Arbre::HTML::Input,
+        url: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'url'
-        },
+        ),
 
-        week: {
-          component: Arbre::HTML::Input,
+        week: Component.new(
+          tag: Arbre::HTML::Input,
           type: 'week'
-        },
+        ),
 
-        select: {
-          component: Arbre::HTML::Select
-        },
+        select: Component.new(
+          tag: Arbre::HTML::Select
+        ),
 
-        textarea: {
-          component: Arbre::HTML::Textarea
-        },
-      }
+        textarea: Component.new(
+          tag: Arbre::HTML::Textarea
+        )
+      )
 
       instance_exec(&block) if block
     end
